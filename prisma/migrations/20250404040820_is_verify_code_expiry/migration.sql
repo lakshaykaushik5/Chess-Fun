@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "MasterUser" ADD COLUMN     "isVerifyCodeExpiry" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
