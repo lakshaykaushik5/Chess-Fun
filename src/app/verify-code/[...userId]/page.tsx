@@ -48,7 +48,7 @@ export default function Page() {
         try {
             const payload = {
                 verifyCode: verifyCode,
-                username: params.userId
+                userId: params.userId
             }
             const response = await axios.post('/api/auth/verify-code', payload)
             toast("OTP Verified Successfully")
