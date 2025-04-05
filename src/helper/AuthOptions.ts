@@ -1,9 +1,10 @@
-import NextAuth, { AuthOptions } from "next-auth"
+import { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { NextRequest } from "next/server"
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "./prisma"
 import bcrypt from "bcryptjs"
+import GoogleProvider from "next-auth/providers/google";
+
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -14,7 +15,7 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials: any) {
-        
+
         if (!credentials.password || !credentials.email) {
           throw new Error("Missing email and password")
         }
@@ -44,8 +45,14 @@ export const authOptions: AuthOptions = {
 
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!
+    })
   ],
   callbacks: {
+    
+
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
@@ -69,6 +76,6 @@ export const authOptions: AuthOptions = {
     maxAge: 30 * 24 * 60 * 60
   },
   secret: process.env.NEXTAUTH_SECRET,
-  adapter:PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
 
 }
