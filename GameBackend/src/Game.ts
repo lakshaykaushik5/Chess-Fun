@@ -1,6 +1,7 @@
 import { Chess } from "chess.js";
 import { WebSocket, WebSocketServer } from "ws";
 import { GAMEOVER, INIT, MOVE } from "./messages";
+import { pushToRedis } from "./RedisWorker";
 
 
 
@@ -11,6 +12,7 @@ export class Game{
     private moves:string[]
     private startTime:Date
     private moveCount:number
+    private fenString:string
 
     constructor(player1:WebSocket,player2:WebSocket,id1:string,id2:string){
         this.player1 = player1
@@ -19,6 +21,7 @@ export class Game{
         this.moves = []
         this.startTime = new Date()
         this.moveCount = 0
+        this.fenString = ""
         this.player1.send(
             JSON.stringify({
                 type:INIT,
@@ -53,6 +56,8 @@ export class Game{
             this.board.move(move)
             board = this.board.board()
             this.moveCount ++
+            this.fenString = this.board.fen()
+            pushToRedis(id,this.fenString)
 
         }catch(error){
             return
@@ -85,7 +90,9 @@ export class Game{
                 JSON.stringify({
                     type:MOVE,
                     payload:{
-                        board:board
+                        board:board,
+                        fenString:this.fenString,
+                        move:move
                     }
                 })
             )
@@ -95,7 +102,9 @@ export class Game{
                 JSON.stringify({
                     type:MOVE,
                     payload:{
-                        board:board
+                        board:board,
+                        fenString:this.fenString,
+                        move:move
                     }
                 })
             )

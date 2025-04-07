@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MasterUser {
+  id            String     @id @default(cuid()) 
+  username      String     @unique
+  email         String     @unique
+  passwordHash  String 
+  status        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt 
+  isVerified    Boolean    @default(false)
+  verifyCode    String? 
+  verifyCodeExpiresAt DateTime? 
+
+  gamesWhite MasterGames[] @relation("WhitePlayerGames")
+  gamesBlack MasterGames[] @relation("BlackPlayerGames")
+}
+
+model MasterGames {
+  id            String     @id @default(uuid())
+  whitePlayerId String
+  blackPlayerId String
+  gameStatus    GameStatus @default(IN_PROGRESS) 
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  whitePlayer MasterUser  @relation("WhitePlayerGames", fields: [whitePlayerId], references: [id]) 
+  blackPlayer MasterUser  @relation("BlackPlayerGames", fields: [blackPlayerId], references: [id]) 
+
+  moves       MasterMoves[]
+
+  @@index([whitePlayerId]) 
+  @@index([blackPlayerId]) 
+}
+
+model MasterMoves {
+  id           String    @id @default(uuid())
+  gameId       String
+  moveNumber   Int
+  fenString    String    @db.Text 
+  moveNotation String?   @db.Text 
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt 
+
+  game MasterGames @relation(fields: [gameId], references: [id], onDelete: Cascade) // Corrected 'references'
+
+  @@unique([gameId, moveNumber])
+  @@index([gameId, moveNumber]) 
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  BLACK_WIN
+  WHITE_WIN
+  DRAW
+}
